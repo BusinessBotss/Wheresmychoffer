@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transport Premium Mallorca</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: #121212;
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(255,255,255,0.05);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .lang-switcher {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .lang-btn {
+      background: none;
+      border: 2px solid #fff;
+      border-radius: 10px;
+      padding: 5px 10px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s, color 0.3s;
+    }
+    .lang-btn:hover, .lang-btn.active {
+      background: #fff;
+      color: #121212;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+     textarea {
+        resize: vertical; /* Permite redimensionar verticalmente */
+        min-height: 80px; /* Altura mínima */
+     }
+    input, select, textarea {
+      background: #2c2c2c;
+      color: #fff;
+    }
+    button {
+      background: #000;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #333;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+        border-radius: 16px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      input, select, textarea, button {
+        font-size: 0.95rem;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="switchLang('en')">EN</button>
+      <button class="lang-btn" onclick="switchLang('es')">ES</button>
+      <button class="lang-btn" onclick="switchLang('de')">DE</button>
+    </div>
+    <h1 id="formTitle">Book Your Premium Transfer</h1>
+    <form id="bookingForm">
+      <input type="text" id="customerName" placeholder="Your Name" required>
+      <input type="tel" id="customerPhone" placeholder="Your Phone Number (with country code)" required>
+      <input type="text" id="pickup" placeholder="Pickup Location" required>
+      <input type="text" id="dropoff" placeholder="Drop-off Location" required>
+      <input type="datetime-local" id="datetime" required>
+      <select id="vehicle" required>
+        <option value="">Select Vehicle Type</option>
+        <option value="car">Car (1-3 passengers)</option>
+        <option value="van">Van (4-7 passengers)</option>
+        <option value="minibus">Minibus (8-15 passengers)</option>
+      </select>
+      <input type="number" id="passengers" placeholder="Number of Passengers" min="1" required>
+      <input type="number" id="luggage" placeholder="Number of Luggage" min="0" value="0">
+      <textarea id="notes" placeholder="Special Requests / Notes"></textarea>
+       <select id="paymentMethod" required>
+        <option value="">Select Payment Method</option>
+        <option value="online">Pay Online (Deposit/Full)</option>
+        <option value="cash">Pay Cash to Driver</option>
+      </select>
+      <button type="submit" id="reserveBtn">Reserve Now</button>
+    </form>
+     <p id="responseMessage" style="margin-top: 20px; color: #00ff00; display: none;"></p> </div>
+
+  <script>
+    let currentLang = 'en'; // Variable para rastrear el idioma actual
+
+    // !! =============================================================== !!
+    // !! IMPORTANTE: Reemplaza esta URL con la URL de despliegue REAL   !!
+    // !! de tu Google Apps Script que obtuviste al desplegarlo.        !!
+    // !! =============================================================== !!
+    const GOOGLE_APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'; // <-- ¡REEMPLAZA ESTO!
+
+    const translations = {
+      en: {
+        title: "Book Your Premium Transfer",
+        customerNamePlaceholder: "Your Name",
+        customerPhonePlaceholder: "Your Phone Number (with country code)",
+        pickup: "Pickup Location",
+        dropoff: "Drop-off Location",
+        passengersPlaceholder: "Number of Passengers",
+        luggagePlaceholder: "Number of Luggage",
+        notesPlaceholder: "Special Requests / Notes",
+        selectVehicle: "Select Vehicle Type",
+        selectPayment: "Select Payment Method",
+        reserve: "Reserve Now",
+        optionsVehicle: ["Select Vehicle Type", "Car (1-3 passengers)", "Van (4-7 passengers)", "Minibus (8-15 passengers)"],
+        optionsPayment: ["Select Payment Method", "Pay Online (Deposit/Full)", "Pay Cash to Driver"],
+        whatsappMessage: "Hello! I would like to book a transfer:\n\nName: ${customerName}\nPhone: ${customerPhone}\n\nPickup: ${pickup}\nDrop-off: ${dropoff}\nDate & Time: ${datetime}\nVehicle: ${vehicleText}\nPassengers: ${passengers}\nLuggage: ${luggage}\nNotes: ${notes}\nPayment Method: ${paymentText}",
+        reserveSuccessMessage: "Request sent successfully! Please complete the conversation on WhatsApp.",
+        reserveErrorMessage: "There was an error sending your request. Please try again or contact us directly via WhatsApp."
+      },
+      es: {
+        title: "Reserva tu Transfer Premium",
+        customerNamePlaceholder: "Tu Nombre",
+        customerPhonePlaceholder: "Tu Número de Teléfono (con código de país)",
+        pickup: "Lugar de Recogida",
+        dropoff: "Lugar de Destino",
+        passengersPlaceholder: "Número de Pasajeros",
+        luggagePlaceholder: "Número de Equipaje",
+        notesPlaceholder: "Peticiones Especiales / Notas",
+        selectVehicle: "Seleccionar Tipo de Vehículo",
+        selectPayment: "Seleccionar Método de Pago",
+        reserve: "Reservar Ahora",
+        optionsVehicle: ["Seleccionar Tipo de Vehículo", "Coche (1-3 pasajeros)", "Furgoneta (4-7 pasajeros)", "Minibús (8-15 pasajeros)"],
+        optionsPayment: ["Seleccionar Método de Pago", "Pagar Online (Depósito/Total)", "Pagar en Efectivo al Conductor"],
+        whatsappMessage: "¡Hola! Me gustaría reservar un traslado:\n\nNombre: ${customerName}\nTeléfono: ${customerPhone}\n\nRecogida: ${pickup}\nDestino: ${dropoff}\nFecha y Hora: ${datetime}\nVehículo: ${vehicleText}\nPasajeros: ${passengers}\nEquipaje: ${luggage}\nNotas: ${notes}\nMétodo de Pago: ${paymentText}",
+        reserveSuccessMessage: "¡Solicitud enviada correctamente! Por favor, completa la conversación en WhatsApp.",
+        reserveErrorMessage: "Hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo o contáctanos directamente por WhatsApp."
+      },
+      de: {
+        title: "Buche Deinen Premium Transfer",
+        customerNamePlaceholder: "Dein Name",
+        customerPhonePlaceholder: "Deine Telefonnummer (mit Ländervorwahl)",
+        pickup: "Abholort",
+        dropoff: "Zielort",
+        passengersPlaceholder: "Anzahl der Passagiere",
+        luggagePlaceholder: "Anzahl des Gepäcks",
+        notesPlaceholder: "Spezielle Wünsche / Anmerkungen",
+        selectVehicle: "Fahrzeugtyp wählen",
+        selectPayment: "Zahlungsmethode wählen",
+        reserve: "Jetzt Reservieren",
+        optionsVehicle: ["Fahrzeugtyp wählen", "Auto (1-3 Personen)", "Van (4-7 Personen)", "Minibus (8-15 Personen)"],
+        optionsPayment: ["Zahlungsmethode wählen", "Online Bezahlen (Anzahlung/Gesamt)", "Barzahlung beim Fahrer"],
+        whatsappMessage: "Hallo! Ich möchte einen Transfer buchen:\n\nName: ${customerName}\nTelefon: ${customerPhone}\n\nAbholort: ${pickup}\nZielort: ${dropoff}\nDatum & Uhrzeit: ${datetime}\nFahrzeug: ${vehicleText}\nPassagiere: ${passengers}\nGepäck: ${luggage}\nAnmerkungen: ${notes}\nZahlungsmethode: ${paymentText}",
+        reserveSuccessMessage: "Anfrage erfolgreich gesendet! Bitte schließe das Gespräch auf WhatsApp ab.",
+        reserveErrorMessage: "Beim Senden deiner Anfrage ist ein Fehler aufgetreten. Bitte versuche es erneut oder kontaktiere uns direkt über WhatsApp."
+      }
+    };
+
+    function switchLang(lang) {
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[onclick="switchLang('${lang}')"]`).classList.add('active');
+
+      currentLang = lang; // Actualiza la variable global del idioma actual
+
+      document.getElementById('formTitle').textContent = translations[lang].title;
+      document.getElementById('customerName').placeholder = translations[lang].customerNamePlaceholder;
+      document.getElementById('customerPhone').placeholder = translations[lang].customerPhonePlaceholder;
+      document.getElementById('pickup').placeholder = translations[lang].pickup;
+      document.getElementById('dropoff').placeholder = translations[lang].dropoff;
+      document.getElementById('passengers').placeholder = translations[lang].passengersPlaceholder;
+      document.getElementById('luggage').placeholder = translations[lang].luggagePlaceholder;
+      document.getElementById('notes').placeholder = translations[lang].notesPlaceholder;
+
+      // Update select default options
+      if (document.getElementById('vehicle').options.length > 0) {
+          document.getElementById('vehicle').options[0].text = translations[lang].selectVehicle;
+      }
+       if (document.getElementById('paymentMethod').options.length > 0) {
+           document.getElementById('paymentMethod').options[0].text = translations[lang].selectPayment;
+       }
+
+
+      // Update vehicle options text
+      const vehicleSelect = document.getElementById('vehicle');
+      const optionsVehicle = translations[lang].optionsVehicle;
+      // Asegurarse de que hay suficientes opciones antes de intentar traducir
+       for (let i = 0; i < optionsVehicle.length; i++) {
+         if(vehicleSelect.options[i]) {
+           vehicleSelect.options[i].text = optionsVehicle[i];
+         }
+       }
+
+      // Update payment options text - ensure values are preserved
+      const paymentSelect = document.getElementById('paymentMethod');
+      const optionsPayment = translations[lang].optionsPayment;
+       for (let i = 0; i < optionsPayment.length; i++) {
+         if(paymentSelect.options[i]) {
+            const originalValue = paymentSelect.options[i].value;
+            paymentSelect.options[i].text = optionsPayment[i];
+            paymentSelect.options[i].value = originalValue;
+         }
+       }
+
+       document.getElementById('reserveBtn').textContent = translations[lang].reserve;
+    }
+
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Deshabilitar botón y mostrar mensaje de envío
+      const reserveBtn = document.getElementById('reserveBtn');
+      const originalBtnText = reserveBtn.textContent;
+      reserveBtn.textContent = 'Sending...'; // O un icono de carga
+      reserveBtn.disabled = true;
+      const responseMessage = document.getElementById('responseMessage');
+      responseMessage.textContent = ''; // Limpiar mensaje previo
+      responseMessage.style.display = 'none';
+
+
+      // 1. Recoger todos los datos del formulario
+      const customerName = document.getElementById('customerName').value;
+      const customerPhone = document.getElementById('customerPhone').value;
+      const pickup = document.getElementById('pickup').value;
+      const dropoff = document.getElementById('dropoff').value;
+      const datetime = document.getElementById('datetime').value;
+      const vehicleSelect = document.getElementById('vehicle');
+      const vehicleValue = vehicleSelect.value;
+      const vehicleText = vehicleSelect.options[vehicleSelect.selectedIndex].text;
+      const passengers = document.getElementById('passengers').value;
+      const luggage = document.getElementById('luggage').value || '0';
+      const notes = document.getElementById('notes').value || 'N/A';
+      const paymentSelect = document.getElementById('paymentMethod');
+      const paymentValue = paymentSelect.value;
+      const paymentText = paymentSelect.options[paymentSelect.selectedIndex].text;
+
+      // 2. Preparar los datos para enviar al registro centralizado (Google Sheet)
+      const formDataForSheet = {
+        'Nombre Cliente': customerName,
+        'Teléfono Cliente': customerPhone,
+        'Origen': pickup,
+        'Destino': dropoff,
+        'Fecha y Hora': datetime,
+        'Tipo Vehículo (Valor)': vehicleValue,
+        'Tipo Vehículo (Texto)': vehicleText,
+        'Pasajeros': passengers,
+        'Equipaje': luggage,
+        'Notas': notes,
+        'Método Pago (Valor)': paymentValue,
+        'Método Pago (Texto)': paymentText,
+        'Idioma Form': currentLang,
+        // 'Timestamp': new Date().toISOString() // Es mejor generar el timestamp en el script de Apps Script, es más fiable
+        // Puedes añadir aquí columnas de gestión si quieres darles un valor inicial desde el form,
+        // pero es más común dejarlas con valores por defecto o vacías y gestionarlas desde la Sheet.
+        // Ej: 'Estado': 'Pendiente' // Esto también lo puedes poner en el script de Apps Script por defecto
+      };
+
+      // 3. Enviar datos al Google Apps Script (registro centralizado)
+      // Asegúrate de haber reemplazado 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' con TU URL real
+      if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+          console.error("ERROR: Google Apps Script URL has not been replaced!");
+          alert("Configuration error: Google Apps Script URL is not set.");
+           reserveBtn.textContent = originalBtnText;
+           reserveBtn.disabled = false;
+           responseMessage.textContent = "Configuration error: Google Apps Script URL is not set.";
+           responseMessage.style.color = '#ff0000';
+           responseMessage.style.display = 'block';
+          return; // Detener el envío si la URL no está configurada
+      }
+
+      fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formDataForSheet)
+      })
+      .then(() => {
+        // 4. Si el envío al script fue "exitoso" (o al menos iniciado en no-cors)
+        // Ahora abrimos WhatsApp
+        const whatsappNumber = '34631690524'; // Tu número de WhatsApp
+        const messageTemplate = translations[currentLang].whatsappMessage;
+        const whatsappMessage = messageTemplate
+            .replace('${customerName}', customerName)
+            .replace('${customerPhone}', customerPhone)
+            .replace('${pickup}', pickup)
+            .replace('${dropoff}', dropoff)
+            .replace('${datetime}', datetime)
+            .replace('${vehicleText}', vehicleText)
+            .replace('${passengers}', passengers)
+            .replace('${luggage}', luggage)
+            .replace('${notes}', notes)
+            .replace('${paymentText}', paymentText);
+
+        // Pequeño retraso antes de abrir WhatsApp para que el usuario vea el mensaje de "Sending..."
+         setTimeout(() => {
+             window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+
+              // Mostrar mensaje de éxito en la web
+              responseMessage.textContent = translations[currentLang].reserveSuccessMessage;
+              responseMessage.style.color = '#00ff00';
+              responseMessage.style.display = 'block';
+
+               // Restaurar botón
+               reserveBtn.textContent = originalBtnText;
+               reserveBtn.disabled = false;
+         }, 500); // 500ms de retraso
+
+
+      })
+      .catch(error => {
+        console.error('Error sending data to sheet:', error);
+         // En caso de error al enviar a la sheet, al menos intentamos abrir WhatsApp
+         // Aunque idealmente el usuario debería saber que hubo un problema con el registro.
+         const whatsappNumber = '34631690524'; // Tu número de WhatsApp
+         const messageTemplate = translations[currentLang].whatsappMessage;
+         const whatsappMessage = messageTemplate
+             .replace('${customerName}', customerName)
+             .replace('${customerPhone}', customerPhone)
+             .replace('${pickup}', pickup)
+             .replace('${dropoff}', dropoff)
+             .replace('${datetime}', datetime)
+             .replace('${vehicleText}', vehicleText)
+             .replace('${passengers}', passengers)
+             .replace('${luggage}', luggage)
+             .replace('${notes}', notes)
+             .replace('${paymentText}', paymentText);
+
+         // Mostrar mensaje de error en la web inmediatamente
+         responseMessage.textContent = translations[currentLang].reserveErrorMessage;
+         responseMessage.style.color = '#ff0000';
+         responseMessage.style.display = 'block';
+
+         // Intentar abrir WhatsApp después de mostrar el error
+         setTimeout(() => {
+            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+            // Restaurar botón
+            reserveBtn.textContent = originalBtnText;
+            reserveBtn.disabled = false;
+         }, 500); // 500ms de retraso
+
+      });
+    });
+
+    // Inicializa el formulario con el idioma por defecto (inglés)
+    switchLang('en');
+  </script>
+</body>
+</html>
