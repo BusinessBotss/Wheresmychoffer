@@ -8,92 +8,130 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      height: 100%;
+      width: 100%;
+      min-height: 100vh; /* Asegura que ocupe al menos el alto total de la ventana */
       background: #121212;
       font-family: 'Poppins', sans-serif;
       color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 20px;
+      /* justify-content: center; /* Eliminado para evitar que empuje el contenido fuera de la pantalla */
+      padding: 40px 20px; /* Añade margen superior e inferior al cuerpo */
+      box-sizing: border-box; /* Asegura que el padding no afecte el ancho/alto total */
     }
     .container {
       background: #1e1e1e;
-      padding: 30px;
+      padding: 40px; /* Aumenta el padding interno */
       border-radius: 20px;
-      box-shadow: 0 8px 24px rgba(255,255,255,0.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2); /* Sombra más pronunciada y profesional */
       width: 100%;
-      max-width: 400px;
+      max-width: 450px; /* Aumenta ligeramente el ancho máximo */
       text-align: center;
+      margin: auto; /* Centra el contenedor horizontalmente */
     }
     .lang-switcher {
-      margin-bottom: 15px;
+      margin-bottom: 25px; /* Más espacio por debajo del selector de idioma */
       display: flex;
       gap: 10px;
       justify-content: center;
     }
     .lang-btn {
       background: none;
-      border: 2px solid #fff;
+      border: 2px solid #444; /* Borde más suave inicialmente */
       border-radius: 10px;
-      padding: 5px 10px;
-      color: #fff;
+      padding: 5px 12px; /* Ajusta padding */
+      color: #ccc; /* Color de texto más suave */
       cursor: pointer;
       font-weight: bold;
-      transition: background 0.3s, color 0.3s;
+      transition: background 0.3s, color 0.3s, border-color 0.3s; /* Transición en borde también */
     }
     .lang-btn:hover, .lang-btn.active {
       background: #fff;
       color: #121212;
+      border-color: #fff; /* Borde blanco en hover/activo */
     }
     h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
+      font-size: 2.2rem; /* Aumenta ligeramente el tamaño del título */
+      margin-bottom: 30px; /* Más espacio debajo del título */
+      font-weight: 700; /* Asegura que el título sea negrita */
+      color: #fff;
     }
     form {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 18px; /* Aumenta el espacio entre campos del formulario */
     }
     input, select, textarea, button {
       width: 100%;
-      padding: 12px;
+      padding: 14px; /* Aumenta el padding interno de los campos */
       border-radius: 8px;
-      border: none;
+      border: 1px solid #444; /* Añade un borde sutil a los campos */
       font-size: 1rem;
-    }
-     textarea {
-        resize: vertical; /* Permite redimensionar verticalmente */
-        min-height: 80px; /* Altura mínima */
-     }
-    input, select, textarea {
       background: #2c2c2c;
       color: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
-    button {
+    input:focus, select:focus, textarea:focus {
+       outline: none;
+       border-color: #666; /* Borde más claro al enfocar */
+       box-shadow: 0 0 8px rgba(255,255,255,0.1); /* Sombra sutil al enfocar */
+    }
+
+     textarea {
+        resize: vertical;
+        min-height: 100px; /* Altura mínima un poco mayor */
+     }
+    button[type="submit"] {
       background: #000;
       color: #fff;
       font-weight: bold;
       cursor: pointer;
       transition: background 0.3s;
+      padding: 15px; /* Padding un poco mayor para el botón */
+      border: none; /* El botón no necesita borde */
     }
-    button:hover {
+    button[type="submit"]:hover:not(:disabled) { /* Añade :not(:disabled) */
       background: #333;
     }
+     button[type="submit"]:disabled {
+         background: #555; /* Color diferente cuando está deshabilitado */
+         cursor: not-allowed;
+     }
+
+    /* Estilo para el mensaje de respuesta */
+    #responseMessage {
+       margin-top: 25px; /* Más espacio arriba del mensaje */
+       padding: 12px;
+       border-radius: 8px;
+       font-size: 0.9rem;
+       word-break: break-word; /* Evita que el texto muy largo rompa el diseño */
+    }
+
 
     @media (max-width: 480px) {
+      body {
+          padding: 30px 15px; /* Ajusta padding en móviles */
+      }
       .container {
-        padding: 20px;
+        padding: 25px; /* Ajusta padding interno en móviles */
         border-radius: 16px;
+        max-width: 100%; /* Permite que ocupe todo el ancho disponible */
       }
       h1 {
-        font-size: 1.5rem;
+        font-size: 1.8rem; /* Ajusta tamaño título en móviles */
+        margin-bottom: 20px;
+      }
+      form {
+        gap: 15px; /* Ajusta espacio entre campos en móviles */
       }
       input, select, textarea, button {
         font-size: 0.95rem;
-        padding: 10px;
+        padding: 12px;
       }
+       button[type="submit"] {
+            padding: 14px;
+       }
     }
   </style>
 </head>
@@ -127,7 +165,8 @@
       </select>
       <button type="submit" id="reserveBtn">Reserve Now</button>
     </form>
-     <p id="responseMessage" style="margin-top: 20px; color: #00ff00; display: none;"></p> </div>
+     <p id="responseMessage" style="margin-top: 20px; color: #00ff00; display: none;"></p>
+  </div>
 
   <script>
     let currentLang = 'en'; // Variable para rastrear el idioma actual
@@ -210,35 +249,32 @@
       document.getElementById('luggage').placeholder = translations[lang].luggagePlaceholder;
       document.getElementById('notes').placeholder = translations[lang].notesPlaceholder;
 
-      // Update select default options
-      if (document.getElementById('vehicle').options.length > 0) {
-          document.getElementById('vehicle').options[0].text = translations[lang].selectVehicle;
-      }
-       if (document.getElementById('paymentMethod').options.length > 0) {
-           document.getElementById('paymentMethod').options[0].text = translations[lang].selectPayment;
-       }
-
-
-      // Update vehicle options text
+      // Update select default options and other options text
       const vehicleSelect = document.getElementById('vehicle');
       const optionsVehicle = translations[lang].optionsVehicle;
-      // Asegurarse de que hay suficientes opciones antes de intentar traducir
-       for (let i = 0; i < optionsVehicle.length; i++) {
-         if(vehicleSelect.options[i]) {
-           vehicleSelect.options[i].text = optionsVehicle[i];
-         }
+       if (vehicleSelect.options.length > 0) {
+           vehicleSelect.options[0].text = translations[lang].selectVehicle;
+            for (let i = 1; i < optionsVehicle.length; i++) { // Empezar desde 1 para no sobreescribir la primera opción
+              if(vehicleSelect.options[i]) {
+                vehicleSelect.options[i].text = optionsVehicle[i];
+              }
+            }
        }
 
-      // Update payment options text - ensure values are preserved
+
       const paymentSelect = document.getElementById('paymentMethod');
       const optionsPayment = translations[lang].optionsPayment;
-       for (let i = 0; i < optionsPayment.length; i++) {
-         if(paymentSelect.options[i]) {
-            const originalValue = paymentSelect.options[i].value;
-            paymentSelect.options[i].text = optionsPayment[i];
-            paymentSelect.options[i].value = originalValue;
-         }
+       if (paymentSelect.options.length > 0) {
+           paymentSelect.options[0].text = translations[lang].selectPayment;
+            for (let i = 1; i < optionsPayment.length; i++) { // Empezar desde 1
+              if(paymentSelect.options[i]) {
+                const originalValue = paymentSelect.options[i].value;
+                paymentSelect.options[i].text = optionsPayment[i];
+                paymentSelect.options[i].value = originalValue;
+              }
+            }
        }
+
 
        document.getElementById('reserveBtn').textContent = translations[lang].reserve;
     }
@@ -288,21 +324,17 @@
         'Método Pago (Texto)': paymentText,
         'Idioma Form': currentLang,
         // 'Timestamp': new Date().toISOString() // Es mejor generar el timestamp en el script de Apps Script, es más fiable
-        // Puedes añadir aquí columnas de gestión si quieres darles un valor inicial desde el form,
-        // pero es más común dejarlas con valores por defecto o vacías y gestionarlas desde la Sheet.
-        // Ej: 'Estado': 'Pendiente' // Esto también lo puedes poner en el script de Apps Script por defecto
       };
 
       // 3. Enviar datos al Google Apps Script (registro centralizado)
       // Asegúrate de haber reemplazado 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' con TU URL real
-      if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-          console.error("ERROR: Google Apps Script URL has not been replaced!");
-          alert("Configuration error: Google Apps Script URL is not set.");
-           reserveBtn.textContent = originalBtnText;
-           reserveBtn.disabled = false;
-           responseMessage.textContent = "Configuration error: Google Apps Script URL is not set.";
+      if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' || !GOOGLE_APPS_SCRIPT_URL) {
+          console.error("ERROR: Google Apps Script URL is not set!");
+           responseMessage.textContent = translations[currentLang].reserveErrorMessage + " (Configuration Error)";
            responseMessage.style.color = '#ff0000';
            responseMessage.style.display = 'block';
+           reserveBtn.textContent = originalBtnText;
+           reserveBtn.disabled = false;
           return; // Detener el envío si la URL no está configurada
       }
 
@@ -351,7 +383,6 @@
       .catch(error => {
         console.error('Error sending data to sheet:', error);
          // En caso de error al enviar a la sheet, al menos intentamos abrir WhatsApp
-         // Aunque idealmente el usuario debería saber que hubo un problema con el registro.
          const whatsappNumber = '34631690524'; // Tu número de WhatsApp
          const messageTemplate = translations[currentLang].whatsappMessage;
          const whatsappMessage = messageTemplate
@@ -370,6 +401,7 @@
          responseMessage.textContent = translations[currentLang].reserveErrorMessage;
          responseMessage.style.color = '#ff0000';
          responseMessage.style.display = 'block';
+
 
          // Intentar abrir WhatsApp después de mostrar el error
          setTimeout(() => {
